@@ -1,0 +1,1115 @@
+import {
+  Title,
+  CodeSurfer,
+  CodeSurferColumns,
+  Step,
+} from "code-surfer";
+import {
+  github,
+  vsDark,
+  vsDark as imperativeTheme,
+  nightOwl as fpTheme,
+} from "@code-surfer/themes";
+
+export const theme = vsDark;
+
+# Hello FP in JS - 2 👋
+
+<div>비즈웹개발셀</div>
+<div>theo.gt</div>
+
+<Notes>
+
+안녕하세요. 반갑습니다. 비즈웹개발셀의 데오입니다.
+
+저번 시간에 이어서 오늘도 자바스크립트로 접해보는 함수형 프로그래밍에 대해서 알아보도록 하겠습니다.
+
+</Notes>
+
+---
+
+# 오늘 살펴볼 내용
+
+<ul>
+  <li>Either</li>
+  <li>Monad</li>
+</ul>
+
+<Notes>
+
+오늘 살펴볼 내용은 크게 두가지가 있는데요.
+
+저번 시간에 살펴봤던 Maybe 펑터에 이어서 Either 펑터에 대해서 살펴볼거구요.
+
+두 번째로 모나드라는 개념에 대해서 한번 살펴보도록 하겠습니다.
+
+</Notes>
+
+---
+
+# Maybe
+
+멋있지만 살짝 모자란 친구
+
+<Notes>
+
+이제 Either라는 펑터에 대해서 알아볼텐데요 그 전에 설명 보충겸 복습 차원으로 Maybe 펑터를 다시 한번 살펴보겠습니다.
+
+Maybe 펑터는 함수 합성시에 발생할 수 있는 에러를 우아하게 처리해서 비정상적으로 프로그램이 종료되는 것을 막아줍니다.
+
+그런데 이 Maybe를 가지고 에러처리를 하다보면 아쉬운 부분이 나타나게 되는데요. 
+
+예제를 가지고 살펴보도록 하겠습니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 19:22 file=./src/Either/maybe-ex-1.js
+```
+
+```jsx 32:40,42:43 file=./src/Either/maybe-ex-1.js subtitle="책을 찾아서 제목의 첫글자를 대문자로 반환"
+```
+
+```jsx 34,39 file=./src/Either/maybe-ex-1.js subtitle="Maybe에 책 목록을 넣은 상태"
+```
+
+```jsx 14:16 file=./src/Either/maybe-ex-1.js subtitle="map 메소드로 내부 값 변경"
+```
+
+```jsx 24:26 file=./src/Either/maybe-ex-1.js subtitle="Maybe의 map을 실행하는 헬퍼 함수"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+지난 시간에 살펴봤던 책을 찾는 예제입니다. 이렇게 책 목록이 있었구요. [enter]
+여기서 아이디를 가지고 책을 찾아서 책 제목에 첫 글자를 대문자로 바꿔서 반환받는게 목표였습니다. [enter]
+
+그래서 중간에 발생할 수 있는 에러를 처리하기 위해서 Maybe에 books를 넣으면서 함수 합성을 시작하게 됩니다. Maybe도 펑터이기 때문에 펑터가 가진 map 메소드를 이용해서 [enter]
+
+Maybe 형태를 유지하면서 값을 변경할 수있습니다. 이 Maybe의 map 메소드는 fn이라는 함수를 파라미터로 받는데요.
+
+Nothing인 경우 아무처리도 하지 않고 Nothing 상태인 자기 자신을 그대로 반환했습니다.
+
+그리고 상태가 Just인 경우는 Maybe가 들고잇는 값에 함수를 적용한 결과를 다시 한번 Maybe로 감싸서 반환했습니다. [enter]
+
+그런데 map은 maybe의 메소드이기 때문에 함수 합성시에도 map을 실행하기 위해서 map 이라는 헬퍼 함수를 만들었었구요.
+
+이 함수에서는 파라미터로 받은 maybe의 map 메소드를 그대로 사용해서 fn 함수를 넘겨주도록 하고 있습니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 24:26 file=./src/Either/maybe-ex-1.js
+```
+
+```jsx file=./src/Either/maybe-ex-2.js
+```
+
+```jsx file=./src/Either/maybe-ex-3.js subtitle="메소드 체이닝"
+```
+
+```jsx 24:26,36 file=./src/Either/maybe-ex-4.js subtitle="커링된 map 헬퍼 함수"
+```
+
+```jsx 38:42 file=./src/Either/maybe-ex-5.js subtitle="파이프라이닝"
+```
+
+</CodeSurfer>
+
+
+<Notes>
+
+그래서 Maybe 안에 1이라는 숫자를 넣고 [enter]
+
+maybe 형태를 유지하면서 5를 더하기 위해서 maybe에 있는 map 메소드를 사용해서 addFive를 넘겨주면 됩니다. [enter]
+
+그런데 우리는 map이라는 헬퍼 함수를 만들었으니까 maybe의 map 메소드를 직접 사용하지 않고고 이렇게 구현할 수 있게 됩니다.
+[enter]
+
+그러면 이걸 응용해서 map 헬퍼 함수에 addFive만 넘겨주면 maybe를 받는 함수로 만들어줄 수 있습니다.
+이걸 파이프라이닝을 할 때 사용하면 이렇게 함수 조합이 가능해 지게 됩니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 33,34,36 file=./src/Either/maybe-ex-6.js subtitle="Maybe.of(null) === Nothing"
+```
+
+```jsx 24:27 file=./src/Either/maybe-ex-7.js subtitle="Nothing 상태의 Maybe"
+```
+
+```jsx 15[12:32] file=./src/Either/maybe-ex-7.js subtitle="아무것도 안함"
+```
+
+```jsx file=./src/Either/maybe-ex-8.js subtitle="Nothing은 map을 건너 뛰는것 같은 효과를 본다"
+```
+
+```jsx file=./src/Either/maybe-ex-1.js subtitle="getOrElse로 Maybe 상태에 따른 분기 처리"
+```
+
+</CodeSurfer>
+
+
+<Notes>
+
+이번에는 Maybe에 null을 넣었기 때문에 Nothing 상태가 되는데요. 이때 다음 단계로 map을 실행하게 되면 [enter]
+
+Nothing 상태의 maybe에 map 메소드를 실행하게 됩니다. [enter]
+
+그러면 함수를 실행하지 않고 바로 자기 자신을 반환하게 되겠죠. [enter]
+
+그래서 아무리 map을 많이 한다고 해도 Nothing을 그대로 반환하기 때문에 마치 map을 무시하는것처럼 느껴지게 되는 겁니다. [enter]
+
+이제 원래 코드로 돌아와서. [enter] 우리가 최종적으로 Maybe 인스턴스를 가지고 getOrElse라는 헬퍼함수를 만들어서 Just 상태일때는 내부 값을 꺼냈구요. Nothing 상태일때는 defaultValue를 반환하도록 했습니다.
+
+여기까지가 지난주에 살펴봤던 Maybe에 대한 내용이었습니다.
+
+</Notes>
+
+---
+
+
+<CodeSurferColumns themes={[github, imperativeTheme]}>
+
+<Step>
+
+```markdown title="요구사항"
+1. id를 이용해서 책 찾기.
+2. 찾은 책의 저자가 Chris인 경우 console.log로 저자명을 출력.
+3. 찾은 책의 저자가 Chris가 아닌 경우 console.error로 저자명을 출력
+```
+
+```json file=./src/Either/newBooks.json title="책 목록"
+```
+
+</Step>
+
+
+</CodeSurferColumns>
+
+<Notes>
+
+자 이제 살짝 달라진 책 목록으로 이런 요구사항을 살펴보겠습니다. 
+
+책 목록에 author라는 저자명 프로퍼티가 생겼구요. 이걸 이용해서 기존처럼 id를 가지고 책을 찾아줍니다.
+
+그리고 찾은 책의 저자가 크리스인 경우는 console.log로 저자명을 출력해주도록 하구요.
+
+만약에 찾의 책의 저자가 크리스가 아닌 경우는 console.error로 저자명을 출력해주도록 처리하고 싶습니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx file=./src/Either/poor-maybe-1.js
+```
+
+```jsx file=./src/Either/poor-maybe-2.js subtitle="저자가 크리스인지 유효성 체크"
+```
+
+```jsx file=./src/Either/poor-maybe-3.js subtitle="Maybe 반환"
+```
+
+```jsx file=./src/Either/poor-maybe-4.js 
+```
+
+```jsx file=./src/Either/poor-maybe-5.js
+```
+
+```jsx file=./src/Either/poor-maybe-6.js subtitle="저자가 크리스인지 아닌지에 따라 Just나 Nothing을 반환"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+이전에 사용했던 책을 찾아주는 함수를 그대로 사용하도록 하겠습니다. [enter]
+
+이제 책의 저자가 크리스인지 확인하는 validateBookAuthor라는 함수를 하나 만들어 보도록 하겠습니다. [enter]
+
+이 함수는 책을 파라미터로 받아서 책의 저자 명에 크리스가 있는지 확인을 합니다. 크리스가 포함된 경우 Maybe에 책을 그대로 넣어서 Just 상태로 반환을 해주구요.
+
+크리스가 아닌 경우는 Maybe에 null을 넣어서 Nothing 상태로 만들어서 반환해 줍니다. [enter]
+
+이제 함수를 조햅해서 책의 저자명을 로그로 찍어주는 작업을 하겠습니다. [enter]
+
+pipe를 통해서 book를 시작으로 findBookById에 책 아이디를 먼저 바인딩해서 실행해줍니다. 그러면 책이 반환되겠죠. [enter]
+
+이렇게 찾은 책을 가지고 저자명이 크리스인지 확인을 해줍니다. 그러면 저자 명에 따라 Just나 Nothing이 반환 되게 됩니다. [enter]
+
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 17,21:25 file=./src/Either/poor-maybe-6.js
+```
+
+```jsx file=./src/Either/poor-maybe-7.js
+```
+
+```jsx file=./src/Either/poor-maybe-8.js subtitle="상태 값에 따른 분기 처리"
+```
+
+```jsx file=./src/Either/poor-maybe-9.js subtitle="익명 함수를 추출"
+```
+
+```jsx file=./src/Either/poor-maybe-10.js subtitle="Just는 책을 들고 있다"
+```
+
+```jsx file=./src/Either/poor-maybe-11.js subtitle="Nothing은 null을 들고 있다"
+```
+
+```jsx file=./src/Either/poor-maybe-12.js subtitle="Nothing은 기본값 지정만 가능"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+이제 이렇게 나온 결과에 따라서 console.log를 가지고 저자명을 찍어주거나 console.error를 가지고 저자명을 찍어주는 분기 처리를 해주면 됩니다. [enter]
+
+그럼 일단 익명함수로 먼저 어떻게 해야할지 살펴보겠습니다. 전달 받은 파라미터는 Just인 경우 크리스가 저자일 것이고, Nothing인 경우는 크리스가 저자가 아닐거기 때문에 Maybe의 상태로 판단을 하면 될것 같습니다. [enter]
+
+이렇게 Nothing이면 error로 출력해주고 Just면 log로 출력해줍니다. [enter]
+그럼 이 부분을 함수로 추출해주면 이렇게 되겠죠. 이제 분기에 따라서 저자명을 한번 출력해보도록 하겠습니다. [enter]
+
+먼저 Just인 경우는 maybe에서 책을 꺼내서 저자명을 로그로 출력하면 될것 같습니다. [enter]
+그리고 Nothing인 경우 저자명을 찍어주려고 하는데 문제는 저자명을 알수가 없다는 점이죠. 왜냐면 Nothing은 내부에 들고있는 값이 null이나 undefined이기 때문에 책에 대한 정보가 없습니다. [enter]
+
+결국 Maybe가 Nothing일때 할 수 있는건 기본값을 지정해 주는게 다입니다. 만약 Nothing일 때도 나중에 참조할 수 있는 값을 가지고 있다면 위 상황을 해결할 수 있을것 같습니다.
+
+</Notes>
+
+---
+
+# Either
+
+Maybe 보다 한 수 위
+
+<Notes>
+
+바로 방금 살펴봤던 문제를 해결해줄 펑터가 Either 라는 펑터입니다.
+
+Either는 에러처리시 참조할 값을 들고있는 펑터라고 생각을 하시면 될것 같습니다.
+
+</Notes>
+
+---
+
+<CodeSurferColumns themes={[ imperativeTheme, fpTheme]}>
+
+<Step subtitle="Either는 상태는 두 가지 값을 갖는다">
+
+```markdown
+Left
+```
+
+```markdown
+Right
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+<Notes>
+
+Either 펑터도 Maybe와 마찬가지로 내부적으로 상태값을 갖습니다.
+
+정상적인 값을 들고있는 경우 Right라는 상태를 갖게 되구요. 뭔가 비정상적인 값을 들고있는 경우 Left 상태를 갖게 됩니다. [enter]
+
+</Notes>
+
+---
+
+<CodeSurferColumns>
+
+<Step subtitle="두가지 상태 모두 값을 가질 수 있다.">
+
+```js
+// Left('Left Value')
+Either.left('Left Value'); 
+```
+
+```js
+// Right('Right Value')
+Either.right("Right Value");
+```
+
+</Step>
+
+<Step>
+
+```js subtitle="Nothing + 값"
+// Left('Left Value')
+Either.left('Left Value'); 
+```
+
+```js subtitle="Just와 같은 역할"
+// Right('Right Value')
+Either.right("Right Value");
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+<Notes>
+
+Either는 Left 상태와 Right 상태 모두 값을 가지고 있습니다. 다만 논리적으로 Left는 비정상적인 경우의 값, Right는 정상적인 경우의 값이라고 생각하시면 쉬울것 같습니다. [enter]
+
+어떻게 보면 Left는 Nothing에서 값을 들고 있다고 생각하시면 편할것 같습니다.
+
+</Notes>
+
+---
+
+<CodeSurferColumns themes={[ imperativeTheme, fpTheme, imperativeTheme]}>
+
+<Step subtitle="Either 구현">
+
+```js file=./src/Either/Either-class.js
+```
+
+```js file=./src/Either/Left-class.js
+```
+
+```js file=./src/Either/Right-class.js
+```
+
+</Step>
+
+<Step subtitle="$value에 값 저장">
+
+```js 2:4 file=./src/Either/Either-class.js
+```
+
+```js 1,15,16 file=./src/Either/Left-class-2.js
+```
+
+```js 1,15,16 file=./src/Either/Right-class-2.js
+```
+
+</Step>
+
+<Step>
+
+```js 6:12,15:19 file=./src/Either/Either-class-2.js subtitle="of와 비슷한 left, right"
+```
+
+```js 1,15,16 file=./src/Either/Left-class-2.js
+```
+
+```js 1,15,16 file=./src/Either/Right-class-2.js
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+
+<Notes>
+
+그래서 방금 설명드린 특징을 구현한 Either 펑터의 코드는 이렇게 됩니다. 총 3개의 클래스를 가지고 구현을 했는데요. [enter]
+
+Left와 Right는 Either라는 클래스를 상속받고 있습니다. 그래서 Left와 Right 인스턴스를 만들면 $value에 값을 저장할 수 있게 됩니다. [enter]
+
+그리고 이걸 이용해서 Maybe에 있는 of 처럼 left와 right라는 스태틱 메소드를 만들어서 Left와 Right 상태의 Either를 만들어 줍니다. [enter]
+
+
+</Notes>
+
+---
+
+<CodeSurferColumns themes={[ imperativeTheme, fpTheme ]}>
+
+<Step>
+
+```js file=./src/Either/Left-class.js
+```
+
+```js file=./src/Either/Right-class.js
+```
+
+</Step>
+
+<Step subtitle="상태 확인">
+
+```js 2:8 file=./src/Either/Left-class.js
+```
+
+```js 2:8 file=./src/Either/Right-class.js
+```
+
+</Step>
+
+<Step subtitle="map 구현">
+
+```js 10:12 file=./src/Either/Left-class.js
+```
+
+```js 10:12 file=./src/Either/Right-class.js
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+<Notes>
+
+그러면 이제 Left와 Right의 구현이 어떻게 다른지 확인해 보겠습니다. [enter]
+
+먼저 상태 값을 확인하는 isRight와 isLeft 반환값이 정 반대입니다. Left는 isLeft가 true isRight가 false이구요.
+
+Right는 isRight가 true isLeft가 flase를 반환합니다. 그리고 [enter]
+
+map 메소드 구현이 다른데요. Left는 Maybe의 Nothing과 마찬가지로 파라미터로 받은 함수를 무시하고 Left 상태인 자기 자신을 그대로 반환해줍니다.
+
+그리고 Right는 Maybe의 Just와 마찬가지로 함수를 값에 적용한 다음 다시 한번 Right로 감싸서 반환해줍니다. [enter]
+
+</Notes>
+
+---
+
+<CodeSurferColumns themes={[ imperativeTheme, fpTheme, imperativeTheme ]}>
+
+<Step>
+
+```js file=./src/Either/Left-class-1.2.js
+```
+
+```js 1:3 file=./src/Either/left-right-1.js
+```
+
+```js file=./src/Either/Right-class-1.2.js
+```
+
+</Step>
+
+<Step>
+
+```js file=./src/Either/Left-class-1.3.js subtitle="map 무시"
+```
+
+```js 1:3 file=./src/Either/left-right-1.js
+```
+
+```js file=./src/Either/Right-class-1.3.js subtitle="map 실행"
+```
+
+</Step>
+
+<Step>
+
+```js 10:12 file=./src/Either/Left-class-1.3.js subtitle="Functor"
+```
+
+```js 5:7 file=./src/Either/left-right-1.js
+```
+
+```js 10:12 file=./src/Either/Right-class-1.3.js subtitle="Functor"
+```
+
+</Step>
+
+<Step>
+
+```js 10:12 file=./src/Either/Left-class-1.4.js
+```
+
+```js file=./src/Either/left-right-2.js subtitle="maybe -> functor"
+```
+
+```js 10:12 file=./src/Either/Right-class-1.4.js
+```
+
+</Step>
+
+<Step>
+
+```js file=./src/Either/Left-class-1.5.js
+```
+
+```js file=./src/Either/left-right-2.js
+```
+
+```js file=./src/Either/Right-class-1.5.js
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+<Notes>
+
+자 그럼 각각이 또 어떻게 사용되는지 한번 확인해보겠습니다.
+
+우선 스트링 2개를 하나의 스트링으로 합쳐주는 concat 함수를 하나 만들었습니다. [enter]
+
+그리고 left와 right에 Start 라는 스트링으로 넣고 map 메소드로 앞에 Super라는 스트링을 붙여주도록 concat을 사용했습니다.
+
+그런데 결과는 Left 상태는 map 메소드를 무시하기 때문에 원래 스트링인 Start가 남게 되구요. Right는 map 메소드에 넘긴 함수를 실행하기 때문에 Super Start라는 스트링을 갖게 됩니다.[enter]
+
+그리고 either도 map 메소드를 갖는 펑터이기 때문에 map 헬퍼함수를 그대로 쓸수가 있습니다.
+그래서 map 헬퍼 함수파라미터 이름을 공통명칭인 functor로 바꿔줄 수 있겠죠. [enter]
+
+이렇게 되면 either에도 아무런 제약 없이 map 헬퍼 함수를 사용 할 수 있게 됩니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 17 file=./src/Either/poor-maybe-12.js subtitle="Nothing은 책정보를 들고 있지 않다"
+```
+
+```jsx 10:12 file=./src/Either/poor-maybe-12.js subtitle="Maybe를 반환"
+```
+
+```jsx 11:13 file=./src/Either/to-either-1.js subtitle="Maybe -> Either"
+```
+
+```jsx file=./src/Either/to-either-2.js subtitle="책 정보를 들고있는 Right나 Left"
+```
+
+```jsx file=./src/Either/to-either-3.js subtitle="logByMaybeStatus -> logByEitherStatus"
+```
+
+```jsx file=./src/Either/to-either-4.js
+```
+
+</CodeSurfer>
+
+<Notes>
+
+자 그럼 아까문제를 Either를 활용해서 해결해보겠습니다. [enter]
+
+저자명이 크리스인지 확인하는 함수에서 Maybe를 사용 했었는데요. 이 부분을 Either로 바꿔보도록 하겠습니다. [enter]
+
+저자가 크리스인 경우 Either의 Right를 사용해서 book을 반환해주구요. 크리스가 아닌 경우는 Left를 사용합니다. [enter]
+
+그러면 validateBookAuthor의 결과로 Right나 Left안에 책을 가진 상태로 반환 됩니다. [enter]
+
+그리고 logByMaybeStatus의 이름을 적절히 either를 사용하도록 바꿔줍니다. [enter]
+
+이제 either의 상태는 Right나 Left이기 때문에 분기를 Right나 Left로 해주고 각각 책 정보를 가지고 있기 때문에 각 책에서 저자명에 접근해서 출력해주도록 합니다.
+
+자 이렇게 해서 Maybe 펑터만 가지고는 해결하기 힘들었던 문제를 Either 펑터를 가지고 해결할 수 있게 됐습니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 16:18 file=./src/Either/to-either-5.js subtitle="마무리 함수 either"
+```
+
+```jsx 16[23:41] file=./src/Either/to-either-5.js subtitle="Left와 Right 상태를 처리할 함수"
+```
+
+```jsx 17[10:67] file=./src/Either/to-either-5.js
+```
+
+```jsx file=./src/Either/to-either-6.js subtitle="코드 흐름을 눈으로 읽기 쉽다"
+```
+
+</CodeSurfer>
+
+
+<Notes>
+
+다음으로 Maybe를 사용할때 getOrElse 라는 헬퍼함수로 값을 꺼내도록 했었는데요. 이것처럼 Either를 사용할때도 마지막 마무리를 도와줄 함수를 하나 만들었습니다. [enter]
+
+either라는 함수는 파라미터로 left, right라는 함수를 두개 받구요. 마지막 파라미터로 either 인스턴스를 받습니다. [enter]
+
+그리고 either의 상태가 Left이면 left라는 함수를, Right이면 right라는 함수를 either 값에 적용해서 반환해줍니다. [enter]
+
+이렇게 만든 either라는 함수를 적용하게 되면. left일 때는 error로 출력해주는 logErrorBookAuthor라는 함수를 만들어서 넘겨주고, right일때 log로 출력해주는 logBookAuthor를 만들어서 넘겨주면. 
+
+상태에 따라서 어떻게 처리하는지 한눈에 알아보기 좋은 가독성 좋은 코드를 작성할 수 있게 됩니다.
+
+이렇게 해서 Maybe로 에러처리를 할때 에러 상황일때도 참조하고 싶은 값을 유지하기 위해서 Either 펑터를 가지고 처리하는 방식을 살펴봤습니다.
+
+</Notes>
+
+---
+
+# Monad
+
+모나드
+
+<Notes>
+
+자 이번에는 모나드라는 개념에 대해서 살펴볼건데요. 이 모나드라는것도 크게 어렵지 않습니다.
+
+펑터와 마찬가지로 특정 메소드를 갖는 객체라고 생각을 하시면 되겠습니다.
+
+우선 여러 종류의 펑터를 같이 사용하다보면 펑터가 겹쳐지게 되면서 펑터 안에 들고있는 값에 접근하기가 어려워지는 상황이 생기게 됩니다.
+
+이런 상황을 한번살펴보고, 이걸 모나드라는 개념으로 해결하는 방법까지 같이 보도록 하겠습니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 5:7 file=./src/Either/to-either-6.js subtitle="undefined가 반환될 수 있다."
+```
+
+```jsx 7 file=./src/Monad/monad-problem-1.js subtitle="Maybe 반환"
+```
+
+```jsx 10:14 file=./src/Monad/monad-problem-2.js subtitle="Either"
+```
+
+```jsx 12:13 file=./src/Monad/monad-problem-3.js subtitle="Either -> Maybe"
+```
+
+```jsx 30:31 file=./src/Monad/monad-problem-3.js subtitle="Maybe(Maybe(Book))"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+방금 살펴봤던 예제를 가지고 이어서 볼텐데요. 이 findBookById라는 함수는 찾고자 하는 책이 없는 경우에 undefined를 반환할 수 도 있습니다.
+그래서 이전에 Maybe 펑터를 가지고 문제를 해결했었는데요. 여기서도 마찬가지로 반환값에 [enter]
+
+Maybe.of를 감싸서 undefiend인 경우 Nothing을 반환하고 그렇지 않으면 Just를 반환하도록 처리해줍니다. [enter]
+
+그리고 validateBookAuthor 함수가 방금전에는 Either를 반환하도록 구현했었는데요. 이 부분을 다시 Maybe를 반환하도록 바꿔서 진행하도록 하겠습니다. [enter]
+
+그러면 findBookById의 결과로 Maybe가 반환이 되구요. 이때 Maybe는 펑터니까 map을 사용해서 함수를 조합해줘야 합니다. [enter]
+
+그래서 map에 validateBookAuthor를 넘겨주게 되면 결과가 Maybe 안에 Maybe가 있는 형태가 됩니다.
+
+이게 왜그런거냐면 map함수는 Maybe를 그대로 반환한다고 했었죠. 그러면 가장 바깥쪽에 있는 Maybe가 map 자체에 의한 Maybe가 되구요.
+
+안쪽에 있는 Maybe는 validateBookAuthor가 반환하는 Maybe가 됩니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 30:31 file=./src/Monad/monad-problem-3.js subtitle="Maybe(Maybe(Book))"
+```
+
+```jsx 32 file=./src/Monad/monad-problem-4.js subtitle="map으로 Maybe(Book)에 접근"
+```
+
+```jsx file=./src/Monad/monad-problem-5.js subtitle="map을 한번 더해서 Book에 접근"
+```
+
+```jsx 33[14:31] file=./src/Monad/monad-problem-6.js subtitle="map((book) => { })은 (maybeBook) => {} 함수를 반환"
+```
+
+```jsx 32[9:50],33[14:31],34[5] file=./src/Monad/monad-problem-6.js subtitle="익명 함수와 map((book) => {})은 같다"
+```
+
+```jsx file=./src/Monad/monad-problem-7.js
+```
+
+```jsx file=./src/Monad/monad-problem-8.js subtitle="찾은 책의 저자명을 로그로 출력"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+그래서 결국은 Maybe안에 Maybe가 있는 형태를 처리해줘야 하는데요. [enter]
+
+map을 사용해서 함수를 넘겨주면 그 함수는 Maybe 안에 있는 값에 접근할 수 있게 됩니다.
+그러면 지금은 Maybe 안에 Maybe가 있었기 때문에 map을 한번 하면 책이 들어있는 Maybe에 접근할 수 있게 됩니다. [enter]
+
+여기에다가 map을 한번 더 해주게 되면 다시 한번 Maybe 안에 있는 책에 접근할 수 있게 되겠죠. [enter]
+
+그런데 map은 커링된 함수기 때문에 함수만 먼저 바인딩하고 이후에 maybe를 넘겨줘도 상관이 없습니다. [enter]
+
+그럼 결국 익명함수 부분도 mayeBook을 파라미터로 받기때문에 같다고 생각할 수 있습니다. [enter]
+그래서 이렇게 한번에 쓸수 있는데요. 조금 헷갈릴시겠지만 쉽게 설명드리면 결국 Maybe가 겹쳐진 수 만큼 map을 겹쳐서 써주면 가장 안에 들어있는 값에 접근할 수 있게 됩니다. [enter]
+
+그리고 겹쳐진 map 안에 logBookAuth 함수를 넘겨줘서 저자명을 출력해주도록 합니다.
+결국 겹쳐진 펑터안에 있는 값에 접근하기 위해서 map 함수를 겹쳐서 사용하게 됐는데요. 뭔가 깔끔해보이지는 않는것 같습니다.
+
+</Notes>
+
+
+---
+
+<CodeSurfer>
+
+```jsx 32 file=./src/Monad/monad-problem-8.js subtitle="바깥쪽 Myabe를 벗겨내면 map을 한번만 써도 된다"
+```
+
+```jsx file=./src/Monad/monad-problem-9.js subtitle="\$value를 반환하는 익명 함수"
+```
+
+```jsx 46:48 file=./src/Monad/monad-problem-10.js subtitle="getOrElse 구현을 Maybe의 메소드로 옮기자"
+```
+
+```jsx file=./src/Monad/monad-problem-11.js
+```
+
+```jsx file=./src/Monad/monad-problem-12.js subtitle="Maybe의 getOrElse 메소드를 사용 하도록 변경"
+```
+
+```jsx file=./src/Monad/monad-problem-13.js subtitle="getOrElse로 한겹 벗겨내기"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+뭔가 다른 방법은 없을까 생각해보면 Maybe 안에 있는 값을 먼저 꺼내고 사용하면 map을 한번만 사용해도 될것 같습니다. [enter]
+
+그러면 $value로 maybe 한겹을 벗겨내서 map을 하나만 사용할 수 있게 됩니다.
+하지만 이 방법은 Just일때만 고려됐기 때문에 Nothing일때도 대응하기 위해서 getOrElse 헬퍼 함수를 사용하려고 하는데요. [enter]
+
+이 함수의 구현을 Maybe의 메소드로 만들어주고 헬퍼함수가 이 Maybe가 구현한 getOrElse를 사용하도록 바꿔보겠습니다. [enter]
+
+먼저 Maybe에 getOrElse 메소드를 추가해줍니다. [enter] 그리고 getOrElse 헬퍼 함수 구현을 maybe에 있는 getOrElse를 사용하도록 바꿔줍니다. [enter]
+
+이제 getOrElse 함수를 이용해서 한겹 벗겨내도록 수정하면 이렇게 되겠죠. 이렇게 하면 Maybe가 2중으로 겹쳐진 상태를 해결하게 됩니다.
+
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 59 file=./src/Monad/monad-problem-13.js subtitle="Maybe(Book)의 입장에서 생각해보기"
+```
+
+```jsx 60 file=./src/Monad/monad-problem-13.js subtitle="validateBookAuthor는 Maybe를 반환한다"
+```
+
+```jsx 60:61 file=./src/Monad/monad-problem-13.js subtitle="map(validateBookAuthor) + getOrelse를 묶자"
+```
+
+```jsx file=./src/Monad/monad-problem-14.js subtitle="chain = map + getOrElse"
+```
+
+```jsx file=./src/Monad/monad-problem-15.js
+```
+
+</CodeSurfer>
+
+<Notes>
+
+여기서 약간 생각을 바꿔보도록 할까요? findBookById를 하게 되면 Maybe(Book)이 반환됩니다. [enter]
+
+근데 다음에 연결하고 싶은 함수가 Maybe를 반환하기 때문에 결과적으로 Maybe안에 Maybe가 들어간 형태가 되는겁니다. [enter]
+
+그래서 maybe가 이중으로 겹쳐지는 상태를 getOrElse로 다시 벗겨재는 작업을 했었죠.
+
+그러면 map에 validateBookAuthor를 넘겨준 부분과 getOrElse를 하나로 묶어서 새로운 함수로 만들어보는걸 생각해 볼수 있습니다. [enter]
+
+함수 이름은 chain이라고 지어주고, 함수와 maybe를 받아서 maybe에 map에 함수를 실행해준 결과에다가 다시 한번 getOrElse를 해줍니다. [enter]
+
+그럼 chain을 이용해서 map과 getOrElse 부분을 대체하면 이렇게 됩니다. getOrElse로 한겹 벗겨내는 작업을 숨겨서 코드를 깔끔하게 만들어 줬습니다. [enter]
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 57:60 file=./src/Monad/monad-problem-16.js subtitle="Maybe(Maybe(Book))을 먼저 만들고 getOrElse로 벗겨내기"
+```
+
+```jsx file=./src/Monad/monad-problem-17.js subtitle="Maybe 값에 바로 함수 fn 적용"
+```
+
+```jsx file=./src/Monad/monad-problem-18.js subtitle="Maybe에 chain 메소드 추가하기"
+```
+
+```jsx file=./src/Monad/monad-problem-19.js subtitle="Maybe의 chain을 그대로 호출"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+그런데 다시 한번 chain 구현에 대해서 살펴보겠습니다.
+
+함수를 받고 maybe에 map으로 함수를 실행한 결과는 Maybe안에 Maybe 형태가 되겠죠. 그리고 그걸 벗겨내기 위해서 getOrElse를 사용했습니다. 
+
+그런데 애초에 Maybe안에 Maybe 형태로 만들지 않으면 getOrElse를 사용하지 않아도 될것같습니다. [enter]
+
+그래서 maybe 안에 든 값을 꺼내서 함수에 바로 적용해 줍니다. 그리고 이 구현대로 다시 한번 Maybe의 메소드로 chain을 추가해줍니다. [enter]
+
+map 메소드와 마찬가지로 Nothing일때는 자기 자신을 그대로 반환해주고요. Just일때만 함수를 실행하도록 처리 합니다. [enter]
+
+이제 chain 헬퍼 함수를 maybe가 구현한 chain을 사용하도록 바꿔줄 수 있습니다. 많이 간단해졌죠.
+
+</Notes>
+
+---
+
+# Monad
+
+새로운 모나드를 반환하는 chain 메소드를 구현한 객체
+
+<Notes>
+
+자 이제부터는 Maybe를 모나드라고도 부를 수 있게 됐습니다. 지금까지는 펑터라고만 불렸는데요. 
+
+방금 chain이라는 메소드를 구현하게 되면서 모나드로 부를 수 있게 됐습니다.
+
+모나드는 여기 나와있는대로 새로운 모나드를 반환하는 chain 메소드를 구현한 객체입니다.
+
+조금 복잡할 수 있는데, chain 메소드가 반환하는 객체가 chain 메소드를 구현하고 있다면 모나드라고 할 수 있는겁니다.
+
+</Notes>
+
+---
+
+<CodeSurferColumns themes={[ imperativeTheme, fpTheme ]}>
+
+<Step>
+
+```markdown subtitle="Functor"
+자기 자신과 같은 타입을 반환하는 map 메소드를 구현한 객체
+```
+
+```markdown subtitle="Monad"
+모나드 타입을 반환하는 chain 메소드를 구현한 객체
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+<Notes>
+
+펑터와 모나드는 정의가 언뜻보면 비슷한것 같은데 이렇게 차이점이 있습니다.
+
+펑터는 자기 자신과 같은 객체를 다시 반환해야 하구요. 모나드는 모나드를 반환해야 합니다.
+
+그런데 모나는 chain 메소드를 구현한 객체이면 되기 때문에 같은 타입이 아니어도 상관 없습니다.
+
+여기서는 Maybe만 가지고 예를 들었지만 Maybe의 chain 메소드로 Either 타입이 반환될 경우 Either가 만약 모나드라면 전혀 상관이 없게 되는 겁니다.
+
+그래서 방금전 예제에서는 Maybe와 Maybe를 서로 연결해주는 상황이었는데요. 이번에는 Either로 연결되는 상황을 살펴보겠습니다.
+
+</Notes>
+
+---
+
+<CodeSurfer>
+
+```jsx 52:56 file=./src/Monad/monad-1.js subtitle="Maybe를 반환하는 validate"
+```
+
+```jsx 54:55 file=./src/Monad/monad-2.js subtitle="Either를 반환하는 validate"
+```
+
+```jsx 84 file=./src/Monad/monad-2.js subtitle="chain의 결과는 Either로 바뀐다"
+```
+
+```jsx 84:85 file=./src/Monad/monad-2.js subtitle="펑터는 map으로 연결된다"
+```
+
+
+</CodeSurfer>
+
+
+<Notes>
+
+validateBookAuth가 Maybe를 반환하는데요. [enter] 다시 한번 either를 반환하도록 변경하겠습니다. [enter]
+
+그리고 원래 구현부를 보면 chain의 결과는 Either가 반환되지만 이전처럼 잘 동작합니다. [enter]
+
+여기서 우리가 확인할 수 있는 사실은 '어떤 함수의 반환값이 펑터인 경우는 map을 가지고 있기 때문에 map 함수를 사용해서 연결할 수 있다'는 점입니다. [enter]
+
+그래서 이전처럼 Maybe가 반환되든 Either가 반환되는 두가지 모두 펑터기 때문에 map을 사용한 연결이 자연스럽게 가능해집니다.
+
+결국 함수 합성을 할때 반환값이 펑터라는것만 만족한다면 '무슨 값이 반환되든 간에 map을 가지고 내부에 들고있는 값을 변경할 수 있다' 라고 기대할 수 있게 됩니다.
+
+</Notes>
+
+---
+
+# 우리가 놓친 것
+
+모나드는 **모나드를 반환하는 chain 메소드를 구현**한 객체
+
+<Notes>
+
+그런데 우리가 놓친것이 하나 있습니다. chain 메소드는 새로운 모나드를 반환해야 하는데.
+
+우리가 방금 반환한 either는 chain 메소드를 아직 구현하지 않았죠. 그래서 either는 아직 모나드의 조건을 충족하지 못했기 때문에 either를 모나드로 한번 만들어 보겠습니다.
+
+</Notes>
+
+---
+
+<CodeSurferColumns themes={[ imperativeTheme, fpTheme, imperativeTheme]}>
+
+<Step>
+
+```jsx file=./src/Monad/monad-either-1.js
+```
+
+```jsx file=./src/Monad/monad-left-1.js
+```
+
+```jsx file=./src/Monad/monad-right-1.js
+```
+
+</Step>
+
+<Step>
+
+```jsx file=./src/Monad/monad-either-1.js
+```
+
+```jsx file=./src/Monad/monad-left-2.js subtitle="그대로 반환"
+```
+
+```jsx file=./src/Monad/monad-right-2.js subtitle="값에 함수 적용"
+```
+
+</Step>
+
+<Step subtitle="모나드 Either">
+
+```jsx file=./src/Monad/monad-either-1.js
+```
+
+```jsx file=./src/Monad/monad-left-2.js
+```
+
+```jsx file=./src/Monad/monad-right-2.js
+```
+
+</Step>
+
+</CodeSurferColumns>
+
+
+<Notes>
+
+여기 아직 모나드가 아닌 either 구현이 있습니다. 여기에 모나드를 만족하기 위해서 chain 메소드를 구현해줍니다. [enter]
+
+Right인 경우는 그대로 값에다가 함수를 적용해서 반환해주고요. Left인 경우는 아무것도 하지않고 그대로 다시 반환해줍니다. [enter]
+
+이렇게 하면 모나드라고 부를수 있는 Either가 완성 됐습니다.
+
+</Notes>
+
+
+---
+
+<CodeSurfer>
+
+```jsx 81:94 file=./src/Monad/monad-3.js subtitle="책의 저자명을 출력"
+```
+
+```jsx file=./src/Monad/monad-4.js subtitle="title 반환"
+```
+
+```jsx file=./src/Monad/monad-5.js subtitle="map을 사용하면 Either(Maybe('title')) 형태가 된다."
+```
+
+```jsx file=./src/Monad/monad-6.js subtitle="chain을 사용해서 Either -> Maybe 모나드로 변경."
+```
+
+```jsx file=./src/Monad/monad-7.js subtitle="펑터와 모나드 특성을 이용하면 함수 합성이 쉬워진다"
+```
+
+</CodeSurfer>
+
+<Notes>
+
+그러면 이제 Maybe와 Either 모두 얼마든지 chain을 활용한 함수 합성이 가능해 집니다. 책을 가지고 저자명을 출력해줬었는데요.
+
+logBookAuthor 대신에 prop 함수를 넣게 되면 title 값을 반환하게 할 수도있구요.[enter]
+
+그리고 이 title의 길이가 30자 이상인지 확인하는 validate 함수를 만들어서 map으로 연결하면 겹쳐진 형태가 되기 때문에 [enter]
+
+chain을 가지고 연결을 해줍니다. 그러면 Either가 Maybe로 연결이 되는듯한 모습을 볼 수 있습니다. [enter]
+
+그래서 이렇게 펑터와 모나드의 특징을 잘 활용하면 함수 합성을 조금더 쉽게 할 수 있게 됩니다.
+
+
+
+다시 한번 오늘한 내용을 살펴보게 되면
+
+</Notes>
+
+---
+
+# Either
+
+Left: 에러 처리에 필요한 값을 가짐
+
+Right: 정상적인 처리의 값을 가짐
+
+<Notes>
+
+Either는 Left 상태와 Right 상태가 있었습니다.
+
+Left는 에러 처리에 필요한 값는 갖는 상태구요. Right는 정상적인 처리에 필요한 값는 가져서 Maybe에서는 하지 못하는 에러 처리가 가능한 펑터였습니다.
+
+</Notes>
+
+---
+
+# Monad
+
+새로운 모나드를 반환하는 chain 메소드를 구현한 객체
+
+map(map(...)) -> chain(...)
+
+<Notes>
+
+두 번재는 모나드를 살펴봤는데요.
+
+모나드는 chain 메소드를 구현한 객체이고, 이 chain 메소드는 새로운 모나드를 반환해야 했었습니다.
+
+그래서 이 chain을 이용하면 map을 두번 겹쳐써야 하는 경우를 chain 한번으로 해결할 수 있었습니다.
+
+</Notes>
+
+---
+
+# Q & A
+
+지난 발표자료 👉 https://kind-pasteur-0c0824.netlify.app
+
+<Notes>
+
+오늘 준비한 내용은 여기까지구요. 
+
+긴 발표 들어주시느라 고생하셨습니다.
+
+혹시 궁금한점 있으신분 계실까요?
+
+</Notes>
+
+---
+
+# 고맙습니다 😃
