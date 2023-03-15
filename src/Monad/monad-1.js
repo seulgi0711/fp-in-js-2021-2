@@ -59,7 +59,7 @@ const either = curry((left, right, either) => {
   return either.isLeft ? left(either.$value) : right(either.$value);
 });
 
-const logBookAuthor = (book) => {
+const logValidBookAuthor = (book) => {
   console.log(book.author);
 };
 
@@ -82,7 +82,7 @@ const logBookAuthor = (bookId, books)  => {
   return pipe(
     findBookById(bookId), // Maybe(Book)
     chain(validateBookAuthor), // Maybe(Book)
-    map(logBookAuthor)
+    map(logValidBookAuthor)
   )(books);
 }
 
